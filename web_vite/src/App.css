@@ -1,0 +1,30 @@
+:root {
+  padding: 2rem;
+}
+
+.container {
+  /* border: 1px solid salmon; */
+  display: grid;
+  grid-template-columns: 7fr 3fr;
+  margin-top: 5rem;
+}
+
+.video-container {
+  /* border: 1px solid green; */
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  justify-content: center;
+  align-content: center;
+  margin-left: 10rem;
+}
+
+.myId {
+  margin-right: 5rem;
+  border-radius: 5px;
+  background: #c9d6ff;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
