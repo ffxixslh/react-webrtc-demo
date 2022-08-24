@@ -1,12 +1,9 @@
-:root {
-  padding: 2rem;
-}
 
 .container {
   /* border: 1px solid salmon; */
   display: grid;
   grid-template-columns: 7fr 3fr;
-  margin-top: 5rem;
+  padding: 5rem;
 }
 
 .video-container {

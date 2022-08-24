@@ -15,27 +15,37 @@ const io = require("socket.io")(server, {
   },
 });
 
+const users = {};
+
 // 创建 socket 连接
 io.on("connection", (socket) => {
+  if (!users[socket.id]) {
+    users[socket.id] = socket.id;
+  }
+
+  console.log("users", users)
+
+  io.of("/").emit("allUsers", users)
+
   // 发送 socket id
   socket.emit("me", socket.id);
 
   // 断开连接
   socket.on("disconnect", () => {
     socket.broadcast.emit("callEnded");
+    delete users[socket.id];
   });
 
-  socket.on("callRemote", (data) => {
+  socket.on("callUser", (data) => {
     // 将数据传递给接受方
-    io.to(data.userToCall).emit("remoteAnswer", {
-      signal: data.signal,
+    io.to(data.userToCall).emit("hey", {
+      signal: data.signalData,
       from: data.from,
-      to: data.name,
+      // to: data.name,
     });
   });
 
-  socket.on("callAnswer", (data) => {
-    console.log('back end', data);
+  socket.on("acceptCall", (data) => {
     // 将数据传递给发起方
     io.to(data.to).emit("callAccepted", data.signal);
   });

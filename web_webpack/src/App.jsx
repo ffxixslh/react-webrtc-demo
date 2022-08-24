@@ -33,7 +33,9 @@ function App() {
       .getUserMedia({ video: true, audio: true })
       .then((stream) => {
         setStream(stream);
-        myVideo.current.srcObject = stream;
+        if (myVideo.current) {
+          myVideo.current.srcObject = stream;
+        }
       })
       .catch((err) => {
         console.error("error: ", err.message);
@@ -43,12 +45,12 @@ function App() {
     socket.on("me", (id) => setMe(id));
 
     // 接收方获取从服务器传递的发起方数据
-    socket.on("remoteAnswer", (data) => {
-      console.log("11",data);
+    socket.on("hey", (data) => {
       setReceivingCall(true);
       setCaller(data.from);
       setUserName(data.to);
       setCallerSignal(data.signal);
+      console.log("hey", data);
     });
   }, []);
 
@@ -57,15 +59,15 @@ function App() {
     // 初始化 peer 对象
     const peer = new SimplePeer({
       initiator: true,
-      stream: stream,
       trickle: false,
+      stream: stream,
     });
 
     // 传递信令
     peer.on("signal", (data) => {
-      socket.emit("callRemote", {
+      socket.emit("callUser", {
         userToCall: idToCall,
-        signal: data,
+        signalData: data,
         from: me,
         name: name,
       });
@@ -73,8 +75,9 @@ function App() {
 
     // 获取对方 stream
     peer.on("stream", (stream) => {
-      console.log("receive remote stream", stream);
-      remoteVideo.current.srcObject = stream;
+      if (remoteVideo.current) {
+        remoteVideo.current.srcObject = stream;
+      }
     });
 
     // 对方接受通话时设置信令
@@ -83,39 +86,34 @@ function App() {
       peer.signal(signal);
     });
 
-    console.log("local peer", peer);
     // 保存 peer 对象
     connectionRef.current = peer;
   };
 
   // 接受呼叫
-  const handleCallAnswer = () => {
+  const handleCallAccepted = () => {
     setCallAccepted(true);
-    console.log("callerSignal:", callerSignal);
     const peer = new SimplePeer({
-      initiator: true,
-      stream: stream,
+      initiator: false,
       trickle: false,
+      stream: stream,
     });
-    
+
     // 设置信令
     peer.on("signal", (data) => {
-      socket.emit("callAnswer", {
+      socket.emit("acceptCall", {
         signal: data,
         to: caller,
       });
-      console.log('answer data', data)
     });
 
     peer.on("stream", (stream) => {
       remoteVideo.current.srcObject = stream;
-      console.log('get remote stream')
     });
 
     // 保存发起方信令
     peer.signal(callerSignal);
 
-    console.log("remote peer:", peer)
     // 保存 peer 对象
     connectionRef.current = peer;
   };
@@ -215,7 +213,7 @@ function App() {
             <Button
               color="primary"
               variant="contained"
-              onClick={() => handleCallAnswer()}
+              onClick={() => handleCallAccepted()}
             >
               同意接听
             </Button>
